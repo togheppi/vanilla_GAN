@@ -3,6 +3,7 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 # Data distribution
@@ -12,10 +13,9 @@ class DataDistribution:
         self.sigma = sigma
 
     def sample(self, num_samples):
-        # samples = np.random.normal(self.mu, self.sigma, num_samples)
-        # samples.sort()
-        # return samples
-        return np.random.normal(self.mu, self.sigma, num_samples)
+        samples = np.random.normal(self.mu, self.sigma, num_samples)
+        samples.sort()
+        return samples
 
 
 # Noise distribution
@@ -24,10 +24,9 @@ class NoiseDistribution:
         self.data_range = data_range
 
     def sample(self, num_samples):
-        # offset = np.random.random(num_samples) * (float(self.data_range) / num_samples)
-        # samples = np.linspace(-self.data_range, self.data_range, num_samples) + offset
-        # return samples
-        return np.linspace(-self.data_range, self.data_range, num_samples) + np.random.random(num_samples) * 0.01
+        offset = np.random.random(num_samples) * 0.01
+        samples = np.linspace(-self.data_range, self.data_range, num_samples) + offset
+        return samples
 
 
 # Generator model
@@ -151,23 +150,29 @@ class Display:
         p_x = np.linspace(-self.data_range, self.data_range, len(p_data))
 
         f, ax = plt.subplots(1)
-        ax.plot(d_x, db_pre_trained, 'c--', linewidth=2, label='db_pre_trained')
-        ax.plot(d_x, db_trained, 'g-', linewidth=2, label='db_trained')
+        ax.plot(d_x, db_pre_trained, '--', label='Decision boundary(pre-trained)')
+        ax.plot(d_x, db_trained, label='Decision boundary')
         ax.set_ylim(0, max(1, np.max(p_data) * 1.1))
         ax.set_xlim(max(self.mu - self.sigma * 3, -self.data_range * 0.9), min(self.mu + self.sigma * 3, self.data_range * 0.9))
-        plt.plot(p_x, p_data, 'b-', linewidth=2, label='real data')
-        plt.plot(p_x, p_gen, 'r-', linewidth=2, label='generated data')
-        plt.title('1D Generative Adversarial Network: ' + '(mu : %3g,' % self.mu + ' sigma : %3g)' % self.sigma)
+        plt.plot(p_x, p_data, label='Real data')
+        plt.plot(p_x, p_gen, label='Generated data')
+        plt.title('1D Gaussian Approximation using vanilla GAN: ' + '(mu: %3g,' % self.mu + ' sigma: %3g)' % self.sigma)
         plt.xlabel('Data values')
         plt.ylabel('Probability density')
-        plt.legend()
+        plt.legend(loc=1)
         plt.grid(True)
+
+        # Save plot
+        save_dir = "results/"
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        plt.savefig(save_dir + '1D_Gaussian' + '_mu_%g' % self.mu + '_sigma_%g' % self.sigma + '.png')
+
         plt.show()
 
-
 # Parameters
-mu = 0.0
-sigma = 1.0
+mu = 1.0
+sigma = 1.5
 data_range = 5
 batch_size = 150
 
@@ -189,7 +194,11 @@ D = Discriminator(input_dim, hidden_dim, output_dim)
 # Loss function
 criterion = torch.nn.BCELoss()
 
+
 # Pre-training discriminator
+# optimizer
+optimizer = torch.optim.SGD(D.parameters(), lr=learning_rate)
+
 D_pre_losses = []
 num_samples_pre = 1000
 num_bins_pre = 100
@@ -207,9 +216,6 @@ for epoch in range(num_epochs_pre):
     x_ = Variable(torch.FloatTensor(np.reshape(x_, [num_bins_pre, input_dim])))
     y_ = Variable(torch.FloatTensor(np.reshape(y_, [num_bins_pre, output_dim])))
 
-    # optimizer
-    optimizer = torch.optim.SGD(D.parameters(), lr=learning_rate)
-
     # Train model
     optimizer.zero_grad()
     D_pre_decision = D(x_)
@@ -223,8 +229,6 @@ for epoch in range(num_epochs_pre):
     if epoch % 100 == 0:
         print(epoch, D_pre_loss.data.numpy())
 
-
-
 # Plot loss
 fig, ax = plt.subplots()
 losses = np.array(D_pre_losses)
@@ -233,19 +237,15 @@ plt.title("Pre-training Loss")
 plt.legend()
 plt.show()
 
-
 # Test sample after pre-training
 num_samples = 10000
 num_bins = 20
 sample = TestSample(D, G, data, gen, data_range, batch_size, num_samples, num_bins)
 
 db_pre_trained = sample.decision_boundary()
-p_data_pre_trained = sample.data_distribution()
-p_gen_pre_trained = sample.gen_distribution()
 
 
 # Training GAN
-
 # Optimizers
 D_optimizer = torch.optim.SGD(D.parameters(), lr=learning_rate)
 G_optimizer = torch.optim.SGD(G.parameters(), lr=learning_rate)
