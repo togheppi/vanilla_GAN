@@ -5,6 +5,7 @@ PyTorch implementation of Vanilla GAN
 ### Results
 * For mu = 0.0, sigma = 1.0:
 <img src = '1D_Gaussian_GAN_results/1D_Gaussian_mu_0_sigma_1.png'>
+
 * For mu = 1.0, sigma = 1.5:
 <img src = '1D_Gaussian_GAN_results/1D_Gaussian_mu_1_sigma_1.5.png'>
 
