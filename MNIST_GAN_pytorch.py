@@ -106,7 +106,7 @@ class Discriminator(torch.nn.Module):
 
 
 # Plot losses
-def plot_loss(g_losses, d_losses, num_epoch, save=False, save_dir='MNIST_GAN_results/', show=False):
+def plot_loss(d_losses, g_losses, num_epoch, save=False, save_dir='MNIST_GAN_results/', show=False):
     fig, ax = plt.subplots()
     ax.set_xlim(0, num_epochs)
     ax.set_ylim(0, max(np.max(g_losses), np.max(d_losses))*1.1)
@@ -130,12 +130,13 @@ def plot_loss(g_losses, d_losses, num_epoch, save=False, save_dir='MNIST_GAN_res
 
 
 def plot_result(generator, noise, num_epoch, save=False, save_dir='MNIST_GAN_results/', show=False, fig_size=(5, 5)):
-    # inference
     generator.eval()
 
     noise = Variable(noise.cuda())
     gen_image = generator(noise)
     gen_image = denorm(gen_image)
+
+    generator.train()
 
     n_rows = np.sqrt(noise.size()[0]).astype(np.int32)
     n_cols = np.sqrt(noise.size()[0]).astype(np.int32)
