@@ -23,6 +23,7 @@ PyTorch implementation of Vanilla GAN
 * Discriminator
     * hidden layers: Three fully-connected (1024, 512, and 256 nodes, respectively), Leaky ReLU activation
     * output layer: Fully-connected (1 node), Sigmoid activation
+    * Dropout: dropout probability = 0.3
 
 ### Results
 * For learning rate = 0.0002 (Adam optimizer), batch size = 128, # of epochs = 100:
