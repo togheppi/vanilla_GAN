@@ -25,7 +25,7 @@ PyTorch implementation of Vanilla GAN
     * output layer: Fully-connected (1 node), Sigmoid activation
 
 ### Results
-* For learning rate 0.0002 (Adam optimizer), batch size = 128, num_epochs = 100:
+* For learning rate = 0.0002 (Adam optimizer), batch size = 128, # of epochs = 100:
 <table align='center'>
 <tr align='center'>
 <td> GAN losses</td>
